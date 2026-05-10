@@ -116,16 +116,24 @@ export async function deleteMedicine(id: string): Promise<void> {
 
 export async function getStats(): Promise<{ totalMedicines: number, recentDonations: number }> {
   if (supabase) {
-    const { data, error } = await supabase.from('medicines').select('createdAt', { count: 'exact' });
-    if (error) throw error;
-    
-    const now = new Date();
-    const recent = data?.filter(m => {
-      const ms = now.getTime() - new Date(m.createdAt).getTime();
-      return ms < 7 * 24 * 60 * 60 * 1000;
-    }).length || 0;
+    try {
+      const { data, error } = await supabase.from('medicines').select('createdAt');
+      if (error) {
+        console.error('Supabase Stats Error:', error);
+        return { totalMedicines: 0, recentDonations: 0 };
+      }
+      
+      const now = new Date();
+      const recent = data?.filter(m => {
+        const ms = now.getTime() - new Date(m.createdAt).getTime();
+        return ms < 7 * 24 * 60 * 60 * 1000;
+      }).length || 0;
 
-    return { totalMedicines: data?.length || 0, recentDonations: recent };
+      return { totalMedicines: data?.length || 0, recentDonations: recent };
+    } catch (e) {
+      console.error('Stats Exception:', e);
+      return { totalMedicines: 0, recentDonations: 0 };
+    }
   }
   
   try {
