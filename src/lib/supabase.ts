@@ -2,8 +2,14 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Try to use Supabase env variables if they exist
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = 
+  import.meta.env.VITE_SUPABASE_URL || 
+  (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_URL : '') || 
+  '';
+const supabaseAnonKey = 
+  import.meta.env.VITE_SUPABASE_ANON_KEY || 
+  (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_ANON_KEY : '') || 
+  '';
 
 // Create a singleton mock or active client
 let supabaseClient: SupabaseClient | null = null;
@@ -26,7 +32,9 @@ try {
       }
     });
   } else {
-    console.warn('Supabase configuration missing or invalid. Check your environment variables.');
+    console.warn('Supabase configuration missing. Check environment variables: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY');
+    if (!supabaseUrl) console.warn('VITE_SUPABASE_URL is empty');
+    if (!supabaseAnonKey) console.warn('VITE_SUPABASE_ANON_KEY is empty');
   }
 } catch (error) {
   console.error("Failed to initialize Supabase client:", error);

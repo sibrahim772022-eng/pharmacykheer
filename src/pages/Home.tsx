@@ -238,16 +238,17 @@ export default function Home() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => handleOrder(selectedMedicine.id)}
                   disabled={isOrdering}
-                  className="w-full bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
                 >
                   {isOrdering ? (
                     <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
                     <>
                       <CheckCircle2 className="w-6 h-6" />
-                      تم الطلب والمطابقة
+                      إتمام الطلب وحذف البيانات
                     </>
                   )}
                 </button>
