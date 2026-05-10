@@ -19,10 +19,20 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const [medsRes, statsRes] = await Promise.all([getMedicines(), getStats()]);
-      setMedicines(medsRes);
-      setStats(statsRes);
+      setLoading(true);
+      const [medsRes, statsRes] = await Promise.allSettled([getMedicines(), getStats()]);
+      
+      const meds = medsRes.status === 'fulfilled' ? medsRes.value : [];
+      const statsObj = statsRes.status === 'fulfilled' ? statsRes.value : { totalMedicines: 0, recentDonations: 0 };
+      
+      setMedicines(meds);
+      setStats(statsObj);
+      
+      if (medsRes.status === 'rejected' || statsRes.status === 'rejected') {
+        console.error('Partial fetch failure:', medsRes, statsRes);
+      }
     } catch (error) {
+      console.error('General fetch error:', error);
       toast.error('حدث خطأ أثناء جلب البيانات');
     } finally {
       setLoading(false);

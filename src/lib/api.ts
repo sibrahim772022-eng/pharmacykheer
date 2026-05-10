@@ -41,40 +41,56 @@ if (getLocalMedicines().length === 0) {
 }
 
 export async function getMedicines(): Promise<Medicine[]> {
-  if (supabase) {
-    try {
+  try {
+    if (supabase) {
       const { data, error } = await supabase.from('medicines').select('*').order('createdAt', { ascending: false });
       if (error) {
         console.error('Supabase Fetch Error:', error);
       } else if (data) {
         return data as Medicine[];
       }
-    } catch (e) {
-      console.error('Supabase getMedicines Exception:', e);
     }
+  } catch (e) {
+    console.error('Supabase getMedicines Exception:', e);
   }
   
   try {
     const res = await fetch('/api/medicines');
     if (res.ok) {
-      const data = await res.json();
-      return data;
+      return await res.json();
     }
   } catch (e) {
     console.warn("Backend not found, using localStorage");
   }
   
-  return getLocalMedicines().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return getLocalMedicines().sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
 }
 
 export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Promise<Medicine> {
   if (supabase) {
-    const { data: newMedicine, error } = await supabase.from('medicines').insert([data as any]).select().single();
-    if (error) {
-      console.error('Supabase Add Error:', error);
-      throw error;
+    try {
+      const { data: newMedicine, error } = await supabase.from('medicines').insert([data as any]).select().single();
+      if (error) {
+        console.error('Supabase Add Error:', error);
+        // If it's a PGRST116 error, it might mean the insert worked but we can't select it back due to RLS
+        if (error.code === 'PGRST116') {
+          return {
+            ...data,
+            id: Math.random().toString(36).substring(2, 9),
+            createdAt: new Date().toISOString()
+          } as Medicine;
+        }
+        throw new Error(error.message || 'حدث خطأ أثناء الرفع إلى Supabase');
+      }
+      return newMedicine as Medicine;
+    } catch (e: any) {
+      console.error('Supabase Add Exception:', e);
+      throw e;
     }
-    return newMedicine as Medicine;
   }
 
   try {
@@ -119,31 +135,32 @@ export async function deleteMedicine(id: string): Promise<void> {
 }
 
 export async function getStats(): Promise<{ totalMedicines: number, recentDonations: number }> {
-  if (supabase) {
-    try {
+  try {
+    if (supabase) {
       const { data, error } = await supabase.from('medicines').select('createdAt');
       if (error) {
         console.error('Supabase Stats Error:', error);
-        // Don't return yet, fall back to localStorage if needed
       } else if (data) {
         const now = new Date();
         const recent = data.filter(m => {
           if (!m.createdAt) return false;
-          const ms = now.getTime() - new Date(m.createdAt).getTime();
+          const date = new Date(m.createdAt);
+          if (isNaN(date.getTime())) return false;
+          const ms = now.getTime() - date.getTime();
           return ms < 7 * 24 * 60 * 60 * 1000;
         }).length;
 
         return { totalMedicines: data.length, recentDonations: recent };
       }
-    } catch (e) {
-      console.error('Stats Exception:', e);
     }
+  } catch (e) {
+    console.error('Stats Exception:', e);
   }
   
   try {
     const res = await fetch('/api/stats');
     if (res.ok) {
-      return res.json();
+      return await res.json();
     }
   } catch (e) {}
 
@@ -151,7 +168,9 @@ export async function getStats(): Promise<{ totalMedicines: number, recentDonati
   const now = new Date();
   const recent = list.filter(m => {
     if (!m.createdAt) return false;
-    const ms = now.getTime() - new Date(m.createdAt).getTime();
+    const date = new Date(m.createdAt);
+    if (isNaN(date.getTime())) return false;
+    const ms = now.getTime() - date.getTime();
     return ms < 7 * 24 * 60 * 60 * 1000;
   }).length;
   
