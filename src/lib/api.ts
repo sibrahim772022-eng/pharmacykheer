@@ -1,5 +1,6 @@
 import type { Medicine } from '../types';
 import { supabase } from './supabase';
+import toast from 'react-hot-toast';
 
 const LOCAL_STORAGE_KEY = 'khair_pharmacy_medicines';
 
@@ -95,30 +96,33 @@ export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Pro
 
   if (supabase) {
     try {
-      const { data: newMedicine, error } = await supabase.from('medicines').insert([data as any]).select().single();
+      // Explicitly map keys to match the quoted column names in Postgres if necessary
+      const payload = {
+        name: data.name,
+        imageUrl: data.imageUrl,
+        ownerName: data.ownerName,
+        phone: data.phone,
+        city: data.city
+      };
+
+      const { data: newMedicine, error } = await supabase
+        .from('medicines')
+        .insert([payload])
+        .select()
+        .single();
+
       if (error) {
-        console.error('Supabase Add Error:', error);
-        // Fallback to local if Supabase fails (e.g. schema mismatch or RLS)
-        // But still log the error so the user knows something is up
+        console.error('Supabase Add Error Details:', error);
+        toast.error(`لم يتم الرفع للسحابة: ${error.message}. سيتم الحفظ محلياً حالياً.`);
+        // Fallback to local
       } else if (newMedicine) {
         return newMedicine as Medicine;
       }
     } catch (e: any) {
       console.error('Supabase Add Exception:', e);
+      toast.error('فشل الاتصال بـ Supabase. سيتم الحفظ محلياً.');
     }
   }
-
-  // If Supabase failed or is null, try backend then local
-  try {
-    const res = await fetch('/api/medicines', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      return await res.json();
-    }
-  } catch (e) {}
 
   // Always save to local storage as a safety net if we haven't returned yet
   const list = getLocalMedicines();
@@ -128,22 +132,25 @@ export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Pro
 }
 
 export async function deleteMedicine(id: string): Promise<void> {
+  // Always clean up local storage
+  const list = getLocalMedicines().filter(m => m.id !== id);
+  saveLocalMedicines(list);
+
   if (supabase) {
-    const { error } = await supabase.from('medicines').delete().eq('id', id);
-    if (error) {
-      console.error('Supabase Delete Error:', error);
-      throw error;
+    try {
+      const { error } = await supabase.from('medicines').delete().eq('id', id);
+      if (error) {
+        console.error('Supabase Delete Error:', error);
+        // We don't throw here to allow the local deletion to be considered a success for the UI
+      }
+    } catch (e) {
+      console.error('Supabase Delete Exception:', e);
     }
-    return;
   }
   
   try {
-    const res = await fetch(`/api/medicines/${id}`, { method: 'DELETE' });
-    if (res.ok) return;
+    await fetch(`/api/medicines/${id}`, { method: 'DELETE' });
   } catch (e) {}
-
-  const list = getLocalMedicines().filter(m => m.id !== id);
-  saveLocalMedicines(list);
 }
 
 export async function getStats(): Promise<{ totalMedicines: number, recentDonations: number }> {

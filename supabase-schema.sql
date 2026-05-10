@@ -1,13 +1,18 @@
--- Run this in your Supabase SQL Editor to apply modifications to the medicines table
--- Instead of dropping the whole table, we just remove the column that is no longer needed
+-- RUN THIS IN SUPABASE SQL EDITOR
+-- This schema matches the current React app data structure
 
-ALTER TABLE IF EXISTS medicines DROP COLUMN IF EXISTS "expiryDate";
+DROP TABLE IF EXISTS medicines;
 
+CREATE TABLE medicines (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  "imageUrl" TEXT,
+  "ownerName" TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  city TEXT NOT NULL,
+  "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
--- Note: RLS policies can be setup if you want to secure the table
--- Enable public reading
--- CREATE POLICY "Allow public read" on medicines for SELECT using (true);
--- Enable public inserts (if authentication is not required for donations)
--- CREATE POLICY "Allow public insert" on medicines for INSERT with check (true);
--- Enable public deletes (to allow removing a medicine when ordered)
--- CREATE POLICY "Allow public delete" on medicines for DELETE using (true);
+-- Enable RLS and allow all actions for now
+ALTER TABLE medicines ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public all" ON medicines FOR ALL USING (true) WITH CHECK (true);

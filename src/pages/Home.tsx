@@ -30,6 +30,9 @@ export default function Home() {
   };
 
   const handleOrder = async (id: string) => {
+    if (!window.confirm('هل أنت متأكد من طلب هذا الدواء؟ سيتم حذفه من المنصة فوراً لتجنب ازدواجية الطلب.')) {
+      return;
+    }
     setIsOrdering(true);
     try {
       await deleteMedicine(id);

@@ -2,19 +2,31 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Try to use Supabase env variables if they exist
-const supabaseUrl = (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL) || import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY) || import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Create a singleton mock or active client
 let supabaseClient: SupabaseClient | null = null;
+
+const isValidUrl = (url: string) => {
+  try {
+    new URL(url);
+    return url.startsWith('http');
+  } catch {
+    return false;
+  }
+};
+
 try {
-  if (supabaseUrl && supabaseAnonKey) {
-    // Only attempt if it looks at least a little bit like a URL to avoid createClient throwing
-    if (supabaseUrl.startsWith('http')) {
-      supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-    } else {
-      console.warn('VITE_SUPABASE_URL must start with http or https');
-    }
+  if (supabaseUrl && supabaseAnonKey && isValidUrl(supabaseUrl)) {
+    console.log('Initializing Supabase client with URL:', supabaseUrl);
+    supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true
+      }
+    });
+  } else {
+    console.warn('Supabase configuration missing or invalid. Check your environment variables.');
   }
 } catch (error) {
   console.error("Failed to initialize Supabase client:", error);

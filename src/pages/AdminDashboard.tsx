@@ -40,6 +40,10 @@ export default function AdminDashboard() {
   };
 
   const handleCompleteOrder = async (id: string) => {
+    if (!window.confirm('هل أنت متأكد من إتمام هذا الطلب؟ سيتم حذف بيانات الدواء نهائياً من المنصة.')) {
+      return;
+    }
+    
     setIsCompleting(true);
     try {
       await deleteMedicine(id);
