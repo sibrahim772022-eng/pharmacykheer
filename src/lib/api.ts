@@ -41,29 +41,45 @@ if (getLocalMedicines().length === 0) {
 }
 
 export async function getMedicines(): Promise<Medicine[]> {
+  let allMeds: Medicine[] = [];
+  const localMeds = getLocalMedicines();
+
   try {
     if (supabase) {
       const { data, error } = await supabase.from('medicines').select('*').order('createdAt', { ascending: false });
       if (error) {
         console.error('Supabase Fetch Error:', error);
       } else if (data) {
-        return data as Medicine[];
+        allMeds = data as Medicine[];
       }
     }
   } catch (e) {
     console.error('Supabase getMedicines Exception:', e);
   }
   
-  try {
-    const res = await fetch('/api/medicines');
-    if (res.ok) {
-      return await res.json();
+  // If we got nothing from Supabase, try the backend
+  if (allMeds.length === 0) {
+    try {
+      const res = await fetch('/api/medicines');
+      if (res.ok) {
+        allMeds = await res.json();
+      }
+    } catch (e) {
+      console.warn("Backend not found or failing");
     }
-  } catch (e) {
-    console.warn("Backend not found, using localStorage");
   }
   
-  return getLocalMedicines().sort((a, b) => {
+  // Combine with local storage to ensure users don't "lose" data they just added (deduplicating by ID)
+  const combined = [...allMeds];
+  const existingIds = new Set(allMeds.map(m => m.id));
+  
+  for (const local of localMeds) {
+    if (!existingIds.has(local.id)) {
+      combined.push(local);
+    }
+  }
+  
+  return combined.sort((a, b) => {
     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return dateB - dateA;
@@ -71,28 +87,28 @@ export async function getMedicines(): Promise<Medicine[]> {
 }
 
 export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Promise<Medicine> {
+  const newLocalMed: Medicine = {
+    ...data,
+    id: Math.random().toString(36).substring(2, 9),
+    createdAt: new Date().toISOString()
+  };
+
   if (supabase) {
     try {
       const { data: newMedicine, error } = await supabase.from('medicines').insert([data as any]).select().single();
       if (error) {
         console.error('Supabase Add Error:', error);
-        // If it's a PGRST116 error, it might mean the insert worked but we can't select it back due to RLS
-        if (error.code === 'PGRST116') {
-          return {
-            ...data,
-            id: Math.random().toString(36).substring(2, 9),
-            createdAt: new Date().toISOString()
-          } as Medicine;
-        }
-        throw new Error(error.message || 'حدث خطأ أثناء الرفع إلى Supabase');
+        // Fallback to local if Supabase fails (e.g. schema mismatch or RLS)
+        // But still log the error so the user knows something is up
+      } else if (newMedicine) {
+        return newMedicine as Medicine;
       }
-      return newMedicine as Medicine;
     } catch (e: any) {
       console.error('Supabase Add Exception:', e);
-      throw e;
     }
   }
 
+  // If Supabase failed or is null, try backend then local
   try {
     const res = await fetch('/api/medicines', {
       method: 'POST',
@@ -100,19 +116,15 @@ export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Pro
       body: JSON.stringify(data),
     });
     if (res.ok) {
-      return res.json();
+      return await res.json();
     }
   } catch (e) {}
 
-  const newMedicine: Medicine = {
-    ...data,
-    id: Math.random().toString(36).substring(2, 9),
-    createdAt: new Date().toISOString()
-  };
+  // Always save to local storage as a safety net if we haven't returned yet
   const list = getLocalMedicines();
-  list.push(newMedicine);
+  list.push(newLocalMed);
   saveLocalMedicines(list);
-  return newMedicine;
+  return newLocalMed;
 }
 
 export async function deleteMedicine(id: string): Promise<void> {
