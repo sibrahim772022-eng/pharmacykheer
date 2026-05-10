@@ -152,8 +152,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-sm text-slate-800 truncate">{medicine.name}</h4>
-                      <p className="text-xs text-slate-500 mb-2 truncate">صلاحية: {medicine.expiryDate}</p>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mt-2">
                         <span className="text-[10px] px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-600 truncate flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
                           {medicine.city}
@@ -209,10 +208,6 @@ export default function Home() {
                     <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedMedicine.name}</h2>
                     <div className="flex flex-wrap gap-3 text-sm font-medium">
                       <span className="flex items-center gap-1 text-slate-600 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100"><MapPin className="w-4 h-4"/> {selectedMedicine.city}</span>
-                      <span className="flex items-center gap-1 text-primary-700 bg-primary-50 px-3 py-1 rounded-lg border border-primary-100">
-                        <Calendar className="w-4 h-4"/>
-                        صلاحية: {selectedMedicine.expiryDate}
-                      </span>
                     </div>
                   </div>
                 </div>

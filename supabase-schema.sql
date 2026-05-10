@@ -1,9 +1,10 @@
 -- Run this in your Supabase SQL Editor to create the medicines table
 
+DROP TABLE IF EXISTS medicines;
+
 CREATE TABLE medicines (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "name" text NOT NULL,
-  "expiryDate" text NOT NULL,
   "imageUrl" text,
   "city" text NOT NULL,
   "phone" text NOT NULL,

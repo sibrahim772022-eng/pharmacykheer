@@ -10,8 +10,6 @@ interface Medicine {
   id: string;
   name: string;
   imageUrl: string;
-  description: string;
-  expiryDate: string;
   ownerName: string;
   phone: string;
   city: string;
@@ -24,8 +22,6 @@ let medicines: Medicine[] = [
     id: "1",
     name: "بنادول إكسترا",
     imageUrl: "https://images.unsplash.com/photo-1584308666744-24d5e4b6d43e?auto=format&fit=crop&q=80&w=400",
-    description: "مسكن للآلام وخافض للحرارة، علبة شبه كاملة",
-    expiryDate: "2026-10-01",
     ownerName: "أحمد محمد",
     phone: "0501234567",
     city: "الرياض",
@@ -35,8 +31,6 @@ let medicines: Medicine[] = [
     id: "2",
     name: "أوجمنتين 1 جم",
     imageUrl: "https://images.unsplash.com/photo-1550572017-edb7f2aebe16?auto=format&fit=crop&q=80&w=400",
-    description: "مضاد حيوي واسع المجال، شريط واحد فقط",
-    expiryDate: "2025-12-15",
     ownerName: "سارة خالد",
     phone: "0559876543",
     city: "جدة",

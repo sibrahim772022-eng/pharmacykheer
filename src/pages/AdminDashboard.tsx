@@ -110,7 +110,6 @@ export default function AdminDashboard() {
                   <th className="p-4 font-bold border-b border-slate-100 w-16">#</th>
                   <th className="p-4 font-bold border-b border-slate-100">الاسم والدواء</th>
                   <th className="p-4 font-bold border-b border-slate-100">المدينة</th>
-                  <th className="p-4 font-bold border-b border-slate-100">صلاحية الدواء</th>
                   <th className="p-4 font-bold border-b border-slate-100">تاريخ الإضافة</th>
                 </tr>
               </thead>
@@ -134,11 +133,6 @@ export default function AdminDashboard() {
                       </div>
                     </td>
                     <td className="p-4 font-medium text-slate-700 text-sm">{medicine.city}</td>
-                    <td className="p-4">
-                      <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-md text-xs font-medium">
-                        {medicine.expiryDate}
-                      </span>
-                    </td>
                     <td className="p-4 text-xs text-slate-500">
                       {safeFormatDistanceToNow(medicine.createdAt)}
                     </td>
@@ -186,10 +180,6 @@ export default function AdminDashboard() {
                     <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedMedicine.name}</h2>
                     <div className="flex flex-wrap gap-3 text-sm font-medium">
                       <span className="flex items-center gap-1 text-slate-600 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100"><MapPin className="w-4 h-4"/> {selectedMedicine.city}</span>
-                      <span className="flex items-center gap-1 text-primary-700 bg-primary-50 px-3 py-1 rounded-lg border border-primary-100">
-                        <Calendar className="w-4 h-4"/>
-                        صلاحية: {selectedMedicine.expiryDate}
-                      </span>
                     </div>
                   </div>
                 </div>

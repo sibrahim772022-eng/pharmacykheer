@@ -86,20 +86,6 @@ export default function AddMedicine() {
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
               </div>
 
-              <div className="relative">
-                <label className={labelClasses}>تاريخ الانتهاء</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    {...register('expiryDate', { required: 'تاريخ الانتهاء مطلوب' })}
-                    className={`${inputClasses} ${errors.expiryDate ? 'border-red-500' : ''}`}
-                    placeholder="مثال: شهر 10 سنة 2025 أو 2025/10"
-                  />
-                  <Calendar className={iconClasses} />
-                </div>
-                {errors.expiryDate && <p className="text-red-500 text-sm mt-1">{errors.expiryDate.message}</p>}
-              </div>
-
               <div className="relative md:col-span-2">
                 <label className={labelClasses}>صورة الدواء (اختياري)</label>
                 <div className="relative flex items-center justify-center w-full">
@@ -167,17 +153,14 @@ export default function AddMedicine() {
 
               <div className="relative md:col-span-2">
                 <label className={labelClasses}>رقم الهاتف</label>
-                <div className="relative flex">
-                  <span className="inline-flex items-center px-4 rounded-r-xl border border-l-0 border-slate-200 bg-slate-100 text-slate-500 font-bold dir-ltr">
-                    +966
-                  </span>
+                <div className="relative">
                   <input
                     {...register('phone', { required: 'رقم الهاتف مطلوب' })}
-                    className={`block w-full pl-3 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-l-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white transition-all text-left dir-ltr ${errors.phone ? 'border-red-500' : ''}`}
-                    placeholder="5X XXX XXXX"
+                    className={`${inputClasses} dir-ltr text-right ${errors.phone ? 'border-red-500' : ''}`}
+                    placeholder="مثال: 0501234567"
                     dir="ltr"
                   />
-                  <Phone className={`${iconClasses} left-3 right-auto`} />
+                  <Phone className={iconClasses} />
                 </div>
                 {errors.phone && <p className="text-red-500 text-sm mt-1 text-right">{errors.phone.message}</p>}
               </div>
