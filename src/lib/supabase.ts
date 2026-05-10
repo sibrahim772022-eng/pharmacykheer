@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Try to use Supabase env variables if they exist

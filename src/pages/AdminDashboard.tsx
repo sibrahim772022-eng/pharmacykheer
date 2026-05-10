@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getMedicines, getStats } from '../lib/api';
+import { getMedicines, getStats, deleteMedicine } from '../lib/api';
 import type { Medicine } from '../types';
 import toast from 'react-hot-toast';
 import { TrendingUp, Package, Loader2, AlertCircle, MapPin, Calendar, User, Phone, X, CheckCircle2 } from 'lucide-react';
