@@ -3,8 +3,7 @@
 CREATE TABLE medicines (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "name" text NOT NULL,
-  "description" text NOT NULL,
-  "expiryDate" date NOT NULL,
+  "expiryDate" text NOT NULL,
   "imageUrl" text,
   "city" text NOT NULL,
   "phone" text NOT NULL,
@@ -17,3 +16,5 @@ CREATE TABLE medicines (
 -- CREATE POLICY "Allow public read" on medicines for SELECT using (true);
 -- Enable public inserts (if authentication is not required for donations)
 -- CREATE POLICY "Allow public insert" on medicines for INSERT with check (true);
+-- Enable public deletes (to allow removing a medicine when ordered)
+-- CREATE POLICY "Allow public delete" on medicines for DELETE using (true);
