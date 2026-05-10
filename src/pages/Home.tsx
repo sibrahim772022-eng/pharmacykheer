@@ -5,8 +5,7 @@ import { PlusCircle, Search, Pill, MapPin, Calendar, User, Phone, CheckCircle2, 
 import { getMedicines, deleteMedicine } from '../lib/api';
 import type { Medicine } from '../types';
 import toast from 'react-hot-toast';
-import { formatDistanceToNow } from 'date-fns';
-import { arSA } from 'date-fns/locale';
+import { safeFormatDistanceToNow } from '../lib/dateUtils';
 
 export default function Home() {
   const [medicines, setMedicines] = useState<Medicine[]>([]);
@@ -230,7 +229,7 @@ export default function Home() {
                 </div>
 
                 <p className="text-[10px] text-slate-400 text-center">
-                  أُضيف {formatDistanceToNow(new Date(selectedMedicine.createdAt), { addSuffix: true, locale: arSA })}
+                  أُضيف {safeFormatDistanceToNow(selectedMedicine.createdAt)}
                 </p>
 
                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3">

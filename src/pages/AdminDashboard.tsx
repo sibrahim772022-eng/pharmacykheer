@@ -4,8 +4,7 @@ import { getMedicines, getStats } from '../lib/api';
 import type { Medicine } from '../types';
 import toast from 'react-hot-toast';
 import { TrendingUp, Package, Loader2, AlertCircle, MapPin, Calendar, User, Phone, X, CheckCircle2 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { arSA } from 'date-fns/locale';
+import { safeFormatDistanceToNow } from '../lib/dateUtils';
 
 export default function AdminDashboard() {
   const [medicines, setMedicines] = useState<Medicine[]>([]);
@@ -141,7 +140,7 @@ export default function AdminDashboard() {
                       </span>
                     </td>
                     <td className="p-4 text-xs text-slate-500">
-                      {formatDistanceToNow(new Date(medicine.createdAt), { addSuffix: true, locale: arSA })}
+                      {safeFormatDistanceToNow(medicine.createdAt)}
                     </td>
                   </motion.tr>
                 ))}
@@ -207,7 +206,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <p className="text-[10px] text-slate-400 text-center">
-                  أُضيف {formatDistanceToNow(new Date(selectedMedicine.createdAt), { addSuffix: true, locale: arSA })}
+                  أُضيف {safeFormatDistanceToNow(selectedMedicine.createdAt)}
                 </p>
 
                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3">
