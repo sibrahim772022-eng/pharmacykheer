@@ -16,8 +16,12 @@ export async function getMedicines(): Promise<Medicine[]> {
 }
 
 export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Promise<Medicine> {
+  // Adding a fallback expiryDate purely to prevent Supabase database insertion errors
+  // in case the user hasn't yet dropped the 'expiryDate' column in their schema.
+  const insertData = { ...data, expiryDate: "غير محدد" };
+  
   if (supabase) {
-    const { data: newMedicine, error } = await supabase.from('medicines').insert([data]).select().single();
+    const { data: newMedicine, error } = await supabase.from('medicines').insert([insertData as any]).select().single();
     if (error) {
       console.error('Supabase Add Error:', error);
       throw error;

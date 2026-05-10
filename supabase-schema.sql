@@ -1,16 +1,8 @@
--- Run this in your Supabase SQL Editor to create the medicines table
+-- Run this in your Supabase SQL Editor to apply modifications to the medicines table
+-- Instead of dropping the whole table, we just remove the column that is no longer needed
 
-DROP TABLE IF EXISTS medicines;
+ALTER TABLE IF EXISTS medicines DROP COLUMN IF EXISTS "expiryDate";
 
-CREATE TABLE medicines (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "name" text NOT NULL,
-  "imageUrl" text,
-  "city" text NOT NULL,
-  "phone" text NOT NULL,
-  "ownerName" text NOT NULL,
-  "createdAt" timestamptz DEFAULT now()
-);
 
 -- Note: RLS policies can be setup if you want to secure the table
 -- Enable public reading
