@@ -229,13 +229,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <h3 className="text-sm font-bold text-slate-800">الوصف أو الجرعة</h3>
-                  <p className="text-slate-600 text-sm leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    {selectedMedicine.description}
-                  </p>
-                </div>
-                
                 <p className="text-[10px] text-slate-400 text-center">
                   أُضيف {formatDistanceToNow(new Date(selectedMedicine.createdAt), { addSuffix: true, locale: arSA })}
                 </p>

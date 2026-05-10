@@ -101,20 +101,6 @@ export default function AddMedicine() {
               </div>
 
               <div className="relative md:col-span-2">
-                <label className={labelClasses}>الوصف أو الجرعة</label>
-                <div className="relative">
-                  <textarea
-                    {...register('description', { required: 'وصف الدواء مطلوب' })}
-                    rows={3}
-                    className={`${inputClasses} resize-none ${errors.description ? 'border-red-500' : ''}`}
-                    placeholder="اكتب وصفاً لحالة الدواء، الجرعة، أو أي تفاصيل هامة..."
-                  />
-                  <FileText className={iconClasses} />
-                </div>
-                {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
-              </div>
-
-              <div className="relative md:col-span-2">
                 <label className={labelClasses}>صورة الدواء (اختياري)</label>
                 <div className="relative flex items-center justify-center w-full">
                   <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-40 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
