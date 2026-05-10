@@ -42,12 +42,16 @@ if (getLocalMedicines().length === 0) {
 
 export async function getMedicines(): Promise<Medicine[]> {
   if (supabase) {
-    const { data, error } = await supabase.from('medicines').select('*').order('createdAt', { ascending: false });
-    if (error) {
-      console.error('Supabase Fetch Error:', error);
-      throw error;
+    try {
+      const { data, error } = await supabase.from('medicines').select('*').order('createdAt', { ascending: false });
+      if (error) {
+        console.error('Supabase Fetch Error:', error);
+      } else if (data) {
+        return data as Medicine[];
+      }
+    } catch (e) {
+      console.error('Supabase getMedicines Exception:', e);
     }
-    return data as Medicine[];
   }
   
   try {
@@ -120,19 +124,19 @@ export async function getStats(): Promise<{ totalMedicines: number, recentDonati
       const { data, error } = await supabase.from('medicines').select('createdAt');
       if (error) {
         console.error('Supabase Stats Error:', error);
-        return { totalMedicines: 0, recentDonations: 0 };
-      }
-      
-      const now = new Date();
-      const recent = data?.filter(m => {
-        const ms = now.getTime() - new Date(m.createdAt).getTime();
-        return ms < 7 * 24 * 60 * 60 * 1000;
-      }).length || 0;
+        // Don't return yet, fall back to localStorage if needed
+      } else if (data) {
+        const now = new Date();
+        const recent = data.filter(m => {
+          if (!m.createdAt) return false;
+          const ms = now.getTime() - new Date(m.createdAt).getTime();
+          return ms < 7 * 24 * 60 * 60 * 1000;
+        }).length;
 
-      return { totalMedicines: data?.length || 0, recentDonations: recent };
+        return { totalMedicines: data.length, recentDonations: recent };
+      }
     } catch (e) {
       console.error('Stats Exception:', e);
-      return { totalMedicines: 0, recentDonations: 0 };
     }
   }
   
@@ -146,6 +150,7 @@ export async function getStats(): Promise<{ totalMedicines: number, recentDonati
   const list = getLocalMedicines();
   const now = new Date();
   const recent = list.filter(m => {
+    if (!m.createdAt) return false;
     const ms = now.getTime() - new Date(m.createdAt).getTime();
     return ms < 7 * 24 * 60 * 60 * 1000;
   }).length;
