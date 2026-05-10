@@ -4,7 +4,10 @@ import { supabase } from './supabase';
 export async function getMedicines(): Promise<Medicine[]> {
   if (supabase) {
     const { data, error } = await supabase.from('medicines').select('*').order('createdAt', { ascending: false });
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase Fetch Error:', error);
+      throw error;
+    }
     return data as Medicine[];
   }
   const res = await fetch('/api/medicines');
@@ -15,7 +18,10 @@ export async function getMedicines(): Promise<Medicine[]> {
 export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Promise<Medicine> {
   if (supabase) {
     const { data: newMedicine, error } = await supabase.from('medicines').insert([data]).select().single();
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase Add Error:', error);
+      throw error;
+    }
     return newMedicine as Medicine;
   }
   const res = await fetch('/api/medicines', {
@@ -30,7 +36,10 @@ export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Pro
 export async function deleteMedicine(id: string): Promise<void> {
   if (supabase) {
     const { error } = await supabase.from('medicines').delete().eq('id', id);
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase Delete Error:', error);
+      throw error;
+    }
     return;
   }
   const res = await fetch(`/api/medicines/${id}`, {
