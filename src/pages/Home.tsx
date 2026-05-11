@@ -13,6 +13,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   const [isOrdering, setIsOrdering] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     fetchMedicines();
@@ -30,14 +31,13 @@ export default function Home() {
   };
 
   const handleOrder = async (id: string) => {
-    if (!window.confirm('هل أنت متأكد من طلب هذا الدواء؟ سيتم حذفه من المنصة فوراً لتجنب ازدواجية الطلب.')) {
-      return;
-    }
+    console.log('Order confirmed for ID:', id);
     setIsOrdering(true);
     try {
       await deleteMedicine(id);
       setMedicines((prev) => prev.filter((m) => m.id !== id));
       setSelectedMedicine(null);
+      setShowConfirm(false);
       toast.success('تم طلب الدواء بنجاح!', { icon: '🎉' });
     } catch (error) {
       toast.error('حدث خطأ أثناء طلب الدواء');
@@ -230,28 +230,53 @@ export default function Home() {
                   أُضيف {safeFormatDistanceToNow(selectedMedicine.createdAt)}
                 </p>
 
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3">
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 transition-all">
                   <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-800 leading-relaxed font-medium">
-                    تنبيه: نرجو الضغط على "تم الطلب والمطابقة" فقط <span className="font-bold underline">بعد استلامك للدواء</span> فعلياً من المتبرع، حيث سيتم حذف الدواء من المنصة مباشرة.
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-sm text-amber-800 leading-relaxed font-medium">
+                      تنبيه: نرجو الضغط على "طلب الدواء" فقط <span className="font-bold underline">بعد استلامك للدواء</span> فعلياً، حيث سيتم حذفه من المنصة.
+                    </p>
+                    {showConfirm && (
+                      <motion.p 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="text-xs text-red-600 font-bold mt-2"
+                      >
+                        تأكيد: سيتم حذف الدواء من القائمة فوراً.
+                      </motion.p>
+                    )}
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleOrder(selectedMedicine.id)}
-                  disabled={isOrdering}
-                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
-                >
-                  {isOrdering ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-6 h-6" />
-                      إتمام الطلب وحذف البيانات
-                    </>
-                  )}
-                </button>
+                {!showConfirm ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(true)}
+                    className="w-full bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
+                  >
+                    <CheckCircle2 className="w-6 h-6" />
+                    طلب الدواء الآن
+                  </button>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => handleOrder(selectedMedicine.id)}
+                      disabled={isOrdering}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/25 transition-all flex items-center justify-center gap-2"
+                    >
+                      {isOrdering ? <Loader2 className="w-5 h-5 animate-spin" /> : 'تأكيد الطلب والحذف'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm(false)}
+                      disabled={isOrdering}
+                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-xl transition-all"
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

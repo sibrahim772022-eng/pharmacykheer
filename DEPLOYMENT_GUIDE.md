@@ -1,38 +1,39 @@
-# دليل تشغيل البرنامج على Vercel و Supabase
+# دليل تشغيل البرنامج وحل المشكلات (Vercel & Supabase)
 
-لكي يعمل البرنامج بشكل صحيح عند رفعه على Vercel، يجب اتباع الخطوات التالية:
+## 1. حل مشكلة "البيانات لا ترفع" في Vercel
+السبب الرئيسي هو عدم تعرف البرنامج على قاعدة بيانات Supabase الخارجية.
+**الحل:**
+1. اذهب لمشروعك في Vercel ثم اذهب لـ **Settings > Environment Variables**.
+2. أضف المتغيرين التاليين (تأكد من كتابة الأسماء بدقة):
+   - `VITE_SUPABASE_URL`: (تجد رابط API في إعدادات Supabase).
+   - `VITE_SUPABASE_ANON_KEY`: (تجد مفتاح anon key في إعدادات Supabase).
+3. بعد الإضافة، قم بإعادة بناء المشروع (Redeploy) في Vercel ليتم تفعيلها.
 
-## 1. إعداد متغيرات البيئة (Environment Variables) في Vercel
-يجب إضافة القيم التالية في إعدادات مشروعك على Vercel (Settings > Environment Variables):
-
-1. **VITE_SUPABASE_URL**: رابط مشروع Supabase الخاص بك.
-2. **VITE_SUPABASE_ANON_KEY**: المفتاح العام (anon key) الخاص بمشروعك.
-
-**ملاحظة:** تأكد من أن الأسماء تبدأ بـ `VITE_` لكي يتمكن Vite من الوصول إليها في المتصفح.
-
-## 2. إعداد قاعدة البيانات (SQL)
-قم بنسخ هذا الكود وتشغيله في **SQL Editor** داخل Supabase:
+## 2. جدول البيانات SQL (كامل وبدون أخطاء)
+انسخ هذا الكود بالكامل في **SQL Editor** في Supabase وقم بتشغيله:
 
 ```sql
--- حذف الجدول القديم إذا وجد لإنشاء الهيكل الجديد المتوافق
+-- 1. إنشاء الجدول
 DROP TABLE IF EXISTS medicines;
 
 CREATE TABLE medicines (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
-  "imageUrl" TEXT,
+  "imageUrl" TEXT DEFAULT 'https://images.unsplash.com/photo-1584308666744-24d5e4b6d43e?auto=format&fit=crop&q=80&w=400',
   "ownerName" TEXT NOT NULL,
   phone TEXT NOT NULL,
   city TEXT NOT NULL,
   "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- تفعيل الحماية والسماح بالوصول العام (مؤقتاً للتشغيل)
+-- 2. إعداد الحماية
 ALTER TABLE medicines ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public all" ON medicines FOR ALL USING (true) WITH CHECK (true);
+
+-- 3. السماح بالوصول العام (لغرض العرض)
+DROP POLICY IF EXISTS "Public Access" ON medicines;
+CREATE POLICY "Public Access" ON medicines FOR ALL TO public USING (true) WITH CHECK (true);
 ```
 
-## 3. لماذا لا تعمل البيانات في Vercel حالياً؟
-إذا كنت ترفع الكود لـ Vercel وترى البرنامج يعمل ولكن البيانات لا تظهر، فالسبب هو:
-- عدم إضافة المفاتيح المذكورة في الخطوة رقم 1 في لوحة تحكم Vercel.
-- البرنامج في بيئة العمل (AI Studio) يستخدم مفاتيح مخفية قمت بإعدادها لك، ولكن عند نقله لـ Vercel يجب إعدادها يدوياً هناك.
+## 3. مشكلة "الأزرار غير فعالة"
+- تم حل هذه المشكلة برمجياً عبر استبدال نافذة التأكيد (window.confirm) بنظام تأكيد داخلي في الواجهة، لأن بعض المتصفحات والبيئات البرمجية تمنع النوافذ المنبثقة.
+- الأزرار الآن تعمل مباشرة وتطلب التأكيد داخل الصفحة لضمان الاستجابة.

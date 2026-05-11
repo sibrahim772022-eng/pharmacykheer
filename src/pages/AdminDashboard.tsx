@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -40,11 +41,7 @@ export default function AdminDashboard() {
   };
 
   const handleCompleteOrder = async (id: string) => {
-    console.log('Complete order click for ID:', id);
-    if (!window.confirm('هل أنت متأكد من إتمام هذا الطلب؟ سيتم حذف بيانات الدواء نهائياً من المنصة.')) {
-      return;
-    }
-    
+    console.log('Complete order confirmed for ID:', id);
     setIsCompleting(true);
     try {
       console.log('Starting deletion process...');
@@ -52,6 +49,7 @@ export default function AdminDashboard() {
       setMedicines((prev) => prev.filter((m) => m.id !== id));
       setStats((prev) => ({ ...prev, totalMedicines: Math.max(0, prev.totalMedicines - 1) }));
       setSelectedMedicine(null);
+      setShowConfirm(false);
       toast.success('تم إتمام الطلب وحذف البيانات بنجاح', { icon: '✅' });
     } catch (error) {
       console.error('Error in handleCompleteOrder:', error);
@@ -216,28 +214,53 @@ export default function AdminDashboard() {
                   أُضيف {safeFormatDistanceToNow(selectedMedicine.createdAt)}
                 </p>
 
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3">
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 transition-all">
                   <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-800 leading-relaxed font-medium">
-                    تنبيه: نرجو الضغط على "تم الطلب والمطابقة" فقط <span className="font-bold underline">بعد استلامك للدواء</span> فعلياً من المتبرع، حيث سيتم حذف الدواء من المنصة مباشرة.
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-sm text-amber-800 leading-relaxed font-medium">
+                      تنبيه: نرجو الضغط على "إتمام الطلب" فقط <span className="font-bold underline">بعد استلامك للدواء</span> فعلياً، حيث سيتم حذف البيانات.
+                    </p>
+                    {showConfirm && (
+                      <motion.p 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="text-xs text-red-600 font-bold mt-2"
+                      >
+                        هل أنت متأكد؟ لا يمكن التراجع عن هذه الخطوة.
+                      </motion.p>
+                    )}
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleCompleteOrder(selectedMedicine.id)}
-                  disabled={isCompleting}
-                  className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
-                >
-                  {isCompleting ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-6 h-6" />
-                      إتمام الطلب وحذف البيانات
-                    </>
-                  )}
-                </button>
+                {!showConfirm ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(true)}
+                    className="w-full bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
+                  >
+                    <CheckCircle2 className="w-6 h-6" />
+                    بدء عملية إتمام الطلب
+                  </button>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => handleCompleteOrder(selectedMedicine.id)}
+                      disabled={isCompleting}
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/25 transition-all flex items-center justify-center gap-2"
+                    >
+                      {isCompleting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'تأكيد الحذف النهائي'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm(false)}
+                      disabled={isCompleting}
+                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-xl transition-all"
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
