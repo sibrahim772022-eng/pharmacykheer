@@ -20,7 +20,14 @@ function saveLocalMedicines(medicines: Medicine[]) {
 
 export async function getMedicines(): Promise<Medicine[]> {
   let allMeds: Medicine[] = [];
-  const localMeds = getLocalMedicines();
+  let localMeds = getLocalMedicines();
+
+  // Purge the old mock data forcefully
+  const hasMockData = localMeds.some(m => m.id === '1' || m.id === '2');
+  if (hasMockData) {
+    localMeds = localMeds.filter(m => m.id !== '1' && m.id !== '2');
+    saveLocalMedicines(localMeds);
+  }
 
   try {
     if (supabase) {

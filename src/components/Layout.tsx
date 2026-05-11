@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { HeartPulse, PlusCircle, LayoutDashboard, Pill } from 'lucide-react';
+import { HeartPulse, PlusCircle, LayoutDashboard, Pill, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Layout() {
@@ -9,6 +9,7 @@ export default function Layout() {
     { name: 'الرئيسية', path: '/', icon: HeartPulse },
     { name: 'إضافة دواء', path: '/add', icon: PlusCircle },
     { name: 'الأدوية المتاحة', path: '/admin', icon: LayoutDashboard },
+    { name: 'التطبيق', path: 'https://median.co/share/xlpxxwy#apk', icon: Download, isExternal: true },
   ];
 
   return (
@@ -34,6 +35,20 @@ export default function Layout() {
 
         <nav className="flex-1 space-y-2 relative">
           {navLinks.map((link) => {
+            if (link.isExternal) {
+              return (
+                <a
+                  key={link.path}
+                  href={link.path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-xl font-medium transition-colors relative text-slate-500 hover:bg-slate-50"
+                >
+                  <link.icon className="w-5 h-5 text-slate-400" />
+                  <span>{link.name}</span>
+                </a>
+              );
+            }
             const isActive = location.pathname === link.path;
             return (
               <Link
@@ -69,22 +84,42 @@ export default function Layout() {
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] z-50 px-6 py-3 pb-safe">
-        <ul className="flex items-center justify-between">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] z-50 px-2 py-2 pb-safe">
+        <ul className="flex items-center justify-around gap-1">
           {navLinks.map((link) => {
+            if (link.isExternal) {
+              return (
+                <li key={link.path} className="flex-1 flex justify-center">
+                  <a
+                    href={link.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center gap-0.5 p-1 rounded-xl transition-all text-slate-400 hover:text-slate-600"
+                  >
+                    <div className="p-1 rounded-xl">
+                      <link.icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-center leading-tight">
+                      {link.name}
+                    </span>
+                  </a>
+                </li>
+              );
+            }
+            
             const isActive = location.pathname === link.path;
             return (
-              <li key={link.path} className="flex-1">
+               <li key={link.path} className="flex-1 flex justify-center">
                 <Link
                   to={link.path}
-                  className={`flex flex-col items-center justify-center gap-1 p-2 rounded-2xl transition-all ${
-                    isActive ? 'text-primary-600 scale-110' : 'text-slate-400 hover:text-slate-600'
+                  className={`flex flex-col items-center justify-center gap-0.5 p-1 rounded-xl transition-all ${
+                    isActive ? 'text-primary-600' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
-                  <div className={`p-1.5 rounded-xl ${isActive ? 'bg-primary-50' : ''}`}>
-                    <link.icon className={`w-6 h-6 ${isActive ? 'fill-primary-100' : ''}`} />
+                  <div className={`p-1 rounded-xl transition-transform ${isActive ? 'bg-primary-50 scale-110' : ''}`}>
+                    <link.icon className={`w-5 h-5 ${isActive ? 'fill-primary-100' : ''}`} />
                   </div>
-                  <span className={`text-[10px] font-bold ${isActive ? 'text-primary-700' : ''}`}>
+                  <span className={`text-[10px] font-bold text-center leading-tight ${isActive ? 'text-primary-700' : ''}`}>
                     {link.name}
                   </span>
                 </Link>

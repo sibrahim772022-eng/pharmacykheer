@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { getMedicines, getStats, deleteMedicine } from '../lib/api';
 import type { Medicine } from '../types';
 import toast from 'react-hot-toast';
-import { TrendingUp, Package, Loader2, AlertCircle, MapPin, Calendar, User, Phone, X, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, Package, Loader2, AlertCircle, MapPin, Calendar, User, Phone, X, CheckCircle2, Download } from 'lucide-react';
 import { safeFormatDistanceToNow } from '../lib/dateUtils';
 
 export default function AdminDashboard() {
@@ -69,9 +69,20 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 relative">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">الأدوية المتاحة</h1>
-        <p className="text-slate-500 font-medium">مراقبة وعرض تفاصيل الأدوية المرفوعة في المنصة</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">الأدوية المتاحة</h1>
+          <p className="text-slate-500 font-medium">مراقبة وعرض تفاصيل الأدوية المرفوعة في المنصة</p>
+        </div>
+        <a 
+          href="https://median.co/share/xlpxxwy#apk" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg active:scale-95"
+        >
+          <Download className="w-5 h-5" />
+          تحميل التطبيق
+        </a>
       </div>
 
       {/* Stats Cards */}
