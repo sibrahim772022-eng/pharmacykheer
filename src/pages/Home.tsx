@@ -48,8 +48,8 @@ export default function Home() {
 
   const filteredMedicines = medicines.filter(
     (m) =>
-      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.city.toLowerCase().includes(searchTerm.toLowerCase())
+      (m.drug_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (m.address?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -94,31 +94,15 @@ export default function Home() {
           <input
             type="text"
             placeholder="ابحث باسم الدواء أو المدينة..."
-            className="w-full pr-12 pl-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 text-slate-800 placeholder-slate-400 transition-colors"
+            className="w-full pr-12 pl-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-slate-800 placeholder-slate-400 transition-colors"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-        </div>
-        <div className="hidden lg:flex items-center gap-4">
-          <div className="flex flex-col text-left">
-            <span className="text-sm font-bold text-slate-700">مرحباً بك</span>
-            <span className="text-xs text-slate-400">في صيدلية الخير</span>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-            <User className="w-5 h-5 text-primary-600" />
-          </div>
         </div>
       </header>
 
       {/* Content Container */}
       <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col gap-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-bold flex items-center gap-2 text-slate-800">
-            <Pill className="text-primary-500 w-6 h-6" />
-            أحدث الأدوية المضافة
-          </h3>
-        </div>
-
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <Loader2 className="w-10 h-10 animate-spin mb-4 text-primary-500" />
@@ -146,19 +130,20 @@ export default function Home() {
                   onClick={() => setSelectedMedicine(medicine)}
                 >
                   <div className="flex gap-4">
-                    <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center border border-slate-100 shrink-0 overflow-hidden relative">
+                    <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center border border-slate-100 shrink-0 overflow-hidden relative shadow-sm">
                       <img
-                        src={medicine.imageUrl}
-                        alt={medicine.name}
+                        src={medicine.image_urls?.[0] || 'https://images.unsplash.com/photo-1584308666744-24d5e4b6d43e?auto=format&fit=crop&q=80&w=400'}
+                        alt={medicine.drug_name}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm text-slate-800 truncate">{medicine.name}</h4>
+                      <h4 className="font-bold text-sm text-slate-800 truncate">{medicine.drug_name}</h4>
+                      <p className="text-[10px] text-slate-500 mt-0.5 truncate">{medicine.quantity}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-[10px] px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-600 truncate flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
-                          {medicine.city}
+                          {medicine.address?.split('-')[0] || 'غير محدد'}
                         </span>
                       </div>
                     </div>
@@ -190,7 +175,7 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
+              className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
             >
               <button
                 onClick={() => setSelectedMedicine(null)}
@@ -198,51 +183,70 @@ export default function Home() {
               >
                 <X className="w-5 h-5" />
               </button>
-              <div className="p-6 sm:p-8 overflow-y-auto space-y-6">
-                <div className="flex gap-6 items-start">
-                  <div className="w-32 h-32 bg-slate-50 rounded-2xl border border-slate-100 shrink-0 overflow-hidden relative">
-                    <img
-                      src={selectedMedicine.imageUrl}
-                      alt={selectedMedicine.name}
-                      className="w-full h-full object-cover"
-                    />
+              <div className="p-6 sm:p-10 overflow-y-auto space-y-8">
+                <div className="flex flex-col sm:flex-row gap-8 items-start">
+                  <div className="w-full sm:w-40 space-y-2">
+                    <div className="w-full aspect-square bg-slate-50 rounded-[2rem] border border-slate-100 shrink-0 overflow-hidden relative shadow-inner">
+                      <img
+                        src={selectedMedicine.image_urls?.[0]}
+                        alt={selectedMedicine.drug_name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {selectedMedicine.image_urls && selectedMedicine.image_urls.length > 1 && (
+                      <div className="grid grid-cols-4 gap-2">
+                        {selectedMedicine.image_urls.slice(1, 5).map((url, i) => (
+                           <div key={i} className="aspect-square rounded-lg overflow-hidden border border-slate-100">
+                             <img src={url} className="w-full h-full object-cover" />
+                           </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedMedicine.name}</h2>
-                    <div className="flex flex-wrap gap-3 text-sm font-medium">
-                      <span className="flex items-center gap-1 text-slate-600 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100"><MapPin className="w-4 h-4"/> {selectedMedicine.city}</span>
+                  <div className="flex-1 pt-2">
+                    <h2 className="text-3xl font-black text-slate-800 mb-2">{selectedMedicine.drug_name}</h2>
+                    <div className="flex flex-wrap gap-2 text-sm font-bold">
+                      <span className="flex items-center gap-1 text-primary-600 bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
+                        {selectedMedicine.quantity}
+                      </span>
+                    </div>
+                    <div className="mt-4 flex items-center gap-2 text-slate-500 font-medium">
+                      <MapPin className="w-4 h-4 text-primary-500"/>
+                      <span>{selectedMedicine.address}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="bg-slate-50 p-4 rounded-2xl space-y-1 border border-slate-100">
-                    <span className="text-slate-500 text-xs font-medium flex items-center gap-1"><User className="w-4 h-4"/> المُتبرع</span>
-                    <p className="text-slate-800 font-bold">{selectedMedicine.ownerName}</p>
+                  <div className="bg-slate-50 p-5 rounded-3xl space-y-1 border border-slate-100">
+                    <span className="text-slate-500 text-xs font-bold flex items-center gap-1 uppercase tracking-wider">
+                      <User className="w-4 h-4"/> المُتبرع
+                    </span>
+                    <p className="text-slate-800 font-black text-lg">{selectedMedicine.donator_name}</p>
                   </div>
-                  <div className="bg-primary-50 p-4 rounded-2xl space-y-1 border border-primary-100 hover:bg-primary-100 transition-colors">
-                    <span className="text-primary-700/70 text-xs font-medium flex items-center gap-1"><Phone className="w-4 h-4"/> رقم التواصل (اضغط للاتصال)</span>
-                    <a href={`tel:${selectedMedicine.phone}`} className="text-primary-700 font-bold text-right block w-full outline-none" dir="ltr">{selectedMedicine.phone}</a>
+                  <div className="bg-primary-600 p-5 rounded-3xl space-y-1 shadow-lg shadow-primary-500/20 hover:bg-primary-700 transition-colors">
+                    <span className="text-white/70 text-xs font-bold flex items-center gap-1">
+                      <Phone className="w-4 h-4"/> رقم التواصل (اضغط للاتصال)
+                    </span>
+                    <a href={`tel:${selectedMedicine.phone_number}`} className="text-white font-black text-xl text-right block w-full outline-none" dir="ltr">
+                      {selectedMedicine.phone_number}
+                    </a>
                   </div>
                 </div>
 
-                <p className="text-[10px] text-slate-400 text-center">
-                  أُضيف {safeFormatDistanceToNow(selectedMedicine.createdAt)}
-                </p>
-
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 transition-all">
-                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="bg-amber-50 border border-amber-200 p-6 rounded-3xl flex items-start gap-4 transition-all">
+                  <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm text-amber-800 leading-relaxed font-medium">
-                      تنبيه: نرجو الضغط على "طلب الدواء" فقط <span className="font-bold underline">بعد استلامك للدواء</span> فعلياً، حيث سيتم حذفه من المنصة.
+                    <p className="text-sm text-amber-800 leading-relaxed font-bold">
+                      تنبيه هام: نرجو الضغط على "طلب الدواء" فقط <span className="underline">بعد تأكيد الاستلام</span> من المتبرع، حيث سيتم حذف الدواء من القائمة لضمان عدم ازدواجية الطلبات.
                     </p>
                     {showConfirm && (
                       <motion.p 
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        className="text-xs text-red-600 font-bold mt-2"
+                        className="text-sm text-red-600 font-black mt-3"
                       >
-                        تأكيد: سيتم حذف الدواء من القائمة فوراً.
+                        تأكيد نهائي: سيتم اعتبار الطلب مكتملاً وحذف البيانات. هل أنت متأكد؟
                       </motion.p>
                     )}
                   </div>
@@ -252,31 +256,35 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setShowConfirm(true)}
-                    className="w-full bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
+                    className="w-full bg-gradient-to-r from-primary-600 to-indigo-700 hover:from-primary-700 hover:to-indigo-800 text-white font-black py-5 rounded-2xl shadow-xl shadow-primary-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 text-lg"
                   >
                     <CheckCircle2 className="w-6 h-6" />
-                    طلب الدواء الآن
+                    طلب هذا الدواء الآن
                   </button>
                 ) : (
-                  <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <button
                       type="button"
                       onClick={() => handleOrder(selectedMedicine.id)}
                       disabled={isOrdering}
-                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/25 transition-all flex items-center justify-center gap-2"
+                      className="bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-2xl shadow-xl shadow-red-500/20 transition-all flex items-center justify-center gap-2"
                     >
-                      {isOrdering ? <Loader2 className="w-5 h-5 animate-spin" /> : 'تأكيد الطلب والحذف'}
+                      {isOrdering ? <Loader2 className="w-5 h-5 animate-spin" /> : 'تأكيد وحذف'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowConfirm(false)}
                       disabled={isOrdering}
-                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-xl transition-all"
+                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-black py-5 rounded-2xl transition-all"
                     >
-                      إلغاء
+                      إلغاء التراجع
                     </button>
                   </div>
                 )}
+                
+                <p className="text-[10px] text-slate-400 text-center font-medium">
+                  تمت الإضافة في: {new Date(selectedMedicine.created_at).toLocaleDateString('ar-SA')} ({safeFormatDistanceToNow(selectedMedicine.created_at)})
+                </p>
               </div>
             </motion.div>
           </div>

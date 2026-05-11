@@ -138,18 +138,18 @@ export default function AdminDashboard() {
                     onClick={() => setSelectedMedicine(medicine)}
                   >
                     <td className="p-4 text-slate-400 font-medium">{index + 1}</td>
-                    <td className="p-4">
+                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <img src={medicine.imageUrl} alt={medicine.name} className="w-10 h-10 rounded-lg object-cover" />
+                         <img src={medicine.image_urls?.[0]} alt={medicine.drug_name} className="w-10 h-10 rounded-lg object-cover shadow-sm" />
                         <div>
-                          <p className="font-bold text-slate-800 text-sm">{medicine.name}</p>
-                          <p className="text-xs text-slate-500">{medicine.ownerName} - <span dir="ltr" className="inline-block">{medicine.phone}</span></p>
+                          <p className="font-bold text-slate-800 text-sm">{medicine.drug_name}</p>
+                          <p className="text-[10px] text-slate-500">{medicine.donator_name} - <span dir="ltr" className="inline-block">{medicine.phone_number}</span></p>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 font-medium text-slate-700 text-sm">{medicine.city}</td>
+                    <td className="p-4 font-medium text-slate-700 text-sm">{medicine.address?.split('-')[0] || 'غير محدد'}</td>
                     <td className="p-4 text-xs text-slate-500">
-                      {safeFormatDistanceToNow(medicine.createdAt)}
+                      {safeFormatDistanceToNow(medicine.created_at)}
                     </td>
                   </motion.tr>
                 ))}
@@ -182,51 +182,70 @@ export default function AdminDashboard() {
               >
                 <X className="w-5 h-5" />
               </button>
-              <div className="p-6 sm:p-8 overflow-y-auto space-y-6">
-                <div className="flex gap-6 items-start">
-                  <div className="w-32 h-32 bg-slate-50 rounded-2xl border border-slate-100 shrink-0 overflow-hidden relative">
-                    <img
-                      src={selectedMedicine.imageUrl}
-                      alt={selectedMedicine.name}
-                      className="w-full h-full object-cover"
-                    />
+              <div className="p-6 sm:p-10 overflow-y-auto space-y-8">
+                <div className="flex flex-col sm:flex-row gap-8 items-start">
+                  <div className="w-full sm:w-40 space-y-2">
+                    <div className="w-full aspect-square bg-slate-50 rounded-[2rem] border border-slate-100 shrink-0 overflow-hidden relative shadow-inner">
+                      <img
+                        src={selectedMedicine.image_urls?.[0]}
+                        alt={selectedMedicine.drug_name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {selectedMedicine.image_urls && selectedMedicine.image_urls.length > 1 && (
+                      <div className="grid grid-cols-4 gap-2">
+                        {selectedMedicine.image_urls.slice(1, 5).map((url, i) => (
+                           <div key={i} className="aspect-square rounded-lg overflow-hidden border border-slate-100">
+                             <img src={url} className="w-full h-full object-cover" />
+                           </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">{selectedMedicine.name}</h2>
-                    <div className="flex flex-wrap gap-3 text-sm font-medium">
-                      <span className="flex items-center gap-1 text-slate-600 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100"><MapPin className="w-4 h-4"/> {selectedMedicine.city}</span>
+                  <div className="flex-1 pt-2">
+                    <h2 className="text-3xl font-black text-slate-800 mb-2">{selectedMedicine.drug_name}</h2>
+                    <div className="flex flex-wrap gap-2 text-sm font-bold">
+                      <span className="flex items-center gap-1 text-primary-600 bg-primary-50 px-3 py-1 rounded-full border border-primary-100">
+                        {selectedMedicine.quantity}
+                      </span>
+                    </div>
+                    <div className="mt-4 flex items-center gap-2 text-slate-500 font-medium">
+                      <MapPin className="w-4 h-4 text-primary-500"/>
+                      <span>{selectedMedicine.address}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="bg-slate-50 p-4 rounded-2xl space-y-1 border border-slate-100">
-                    <span className="text-slate-500 text-xs font-medium flex items-center gap-1"><User className="w-4 h-4"/> المُتبرع</span>
-                    <p className="text-slate-800 font-bold">{selectedMedicine.ownerName}</p>
+                  <div className="bg-slate-50 p-5 rounded-3xl space-y-1 border border-slate-100">
+                    <span className="text-slate-500 text-xs font-bold flex items-center gap-1 uppercase tracking-wider">
+                      <User className="w-4 h-4"/> المُتبرع
+                    </span>
+                    <p className="text-slate-800 font-black text-lg">{selectedMedicine.donator_name}</p>
                   </div>
-                  <div className="bg-primary-50 p-4 rounded-2xl space-y-1 border border-primary-100 hover:bg-primary-100 transition-colors">
-                    <span className="text-primary-700/70 text-xs font-medium flex items-center gap-1"><Phone className="w-4 h-4"/> رقم التواصل (اضغط للاتصال)</span>
-                    <a href={`tel:${selectedMedicine.phone}`} className="text-primary-700 font-bold text-right block w-full outline-none" dir="ltr">{selectedMedicine.phone}</a>
+                  <div className="bg-primary-600 p-5 rounded-3xl space-y-1 shadow-lg shadow-primary-500/20 hover:bg-primary-700 transition-colors">
+                    <span className="text-white/70 text-xs font-bold flex items-center gap-1">
+                      <Phone className="w-4 h-4"/> رقم التواصل (اضغط للاتصال)
+                    </span>
+                    <a href={`tel:${selectedMedicine.phone_number}`} className="text-white font-black text-xl text-right block w-full outline-none" dir="ltr">
+                      {selectedMedicine.phone_number}
+                    </a>
                   </div>
                 </div>
 
-                <p className="text-[10px] text-slate-400 text-center">
-                  أُضيف {safeFormatDistanceToNow(selectedMedicine.createdAt)}
-                </p>
-
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 transition-all">
-                  <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="bg-amber-50 border border-amber-200 p-6 rounded-3xl flex items-start gap-4 transition-all">
+                  <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm text-amber-800 leading-relaxed font-medium">
-                      تنبيه: نرجو الضغط على "إتمام الطلب" فقط <span className="font-bold underline">بعد استلامك للدواء</span> فعلياً، حيث سيتم حذف البيانات.
+                    <p className="text-sm text-amber-800 leading-relaxed font-bold">
+                      تنبيه هام ومباشر: نرجو الضغط على "إتمام الطلب" فقط <span className="underline">بعد تأكيد الاستلام</span> من المتبرع، حيث سيتم حذف الدواء نهائياً من القائمة.
                     </p>
                     {showConfirm && (
                       <motion.p 
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        className="text-xs text-red-600 font-bold mt-2"
+                        className="text-sm text-red-600 font-black mt-3"
                       >
-                        هل أنت متأكد؟ لا يمكن التراجع عن هذه الخطوة.
+                        تأكيد نهائي: سيتم اعتبار الطلب مكتملاً وحذف البيانات. هل أنت متأكد؟
                       </motion.p>
                     )}
                   </div>
@@ -236,18 +255,18 @@ export default function AdminDashboard() {
                   <button
                     type="button"
                     onClick={() => setShowConfirm(true)}
-                    className="w-full bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary-500/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
+                    className="w-full bg-gradient-to-r from-primary-600 to-indigo-700 hover:from-primary-700 hover:to-indigo-800 text-white font-black py-5 rounded-2xl shadow-xl shadow-primary-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 text-lg"
                   >
                     <CheckCircle2 className="w-6 h-6" />
-                    بدء عملية إتمام الطلب
+                    إتمام الطلب والمطابقة
                   </button>
                 ) : (
-                  <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <button
                       type="button"
                       onClick={() => handleCompleteOrder(selectedMedicine.id)}
                       disabled={isCompleting}
-                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-500/25 transition-all flex items-center justify-center gap-2"
+                      className="bg-red-600 hover:bg-red-700 text-white font-black py-5 rounded-2xl shadow-xl shadow-red-500/20 transition-all flex items-center justify-center gap-2"
                     >
                       {isCompleting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'تأكيد الحذف النهائي'}
                     </button>
@@ -255,12 +274,16 @@ export default function AdminDashboard() {
                       type="button"
                       onClick={() => setShowConfirm(false)}
                       disabled={isCompleting}
-                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-xl transition-all"
+                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-black py-5 rounded-2xl transition-all"
                     >
-                      إلغاء
+                      إلغاء التراجع
                     </button>
                   </div>
                 )}
+                
+                <p className="text-[10px] text-slate-400 text-center font-medium">
+                  تمت الإضافة في: {new Date(selectedMedicine.created_at).toLocaleDateString('ar-SA')} ({safeFormatDistanceToNow(selectedMedicine.created_at)})
+                </p>
               </div>
             </motion.div>
           </div>

@@ -22,21 +22,25 @@ if (getLocalMedicines().length === 0) {
   saveLocalMedicines([
     {
       id: "1",
-      name: "بنادول إكسترا",
-      imageUrl: "https://images.unsplash.com/photo-1584308666744-24d5e4b6d43e?auto=format&fit=crop&q=80&w=400",
-      ownerName: "أحمد محمد",
-      phone: "0501234567",
-      city: "الرياض",
-      createdAt: new Date().toISOString()
+      drug_name: "بنادول إكسترا",
+      image_urls: ["https://images.unsplash.com/photo-1584308666744-24d5e4b6d43e?auto=format&fit=crop&q=80&w=400"],
+      donator_name: "أحمد محمد",
+      phone_number: "0501234567",
+      address: "الرياض، حي النرجس",
+      quantity: "2 علبة",
+      status: "available",
+      created_at: new Date().toISOString()
     },
     {
       id: "2",
-      name: "أوجمنتين 1 جم",
-      imageUrl: "https://images.unsplash.com/photo-1550572017-edb7f2aebe16?auto=format&fit=crop&q=80&w=400",
-      ownerName: "سارة خالد",
-      phone: "0559876543",
-      city: "جدة",
-      createdAt: new Date().toISOString()
+      drug_name: "أوجمنتين 1 جم",
+      image_urls: ["https://images.unsplash.com/photo-1550572017-edb7f2aebe16?auto=format&fit=crop&q=80&w=400"],
+      donator_name: "سارة خالد",
+      phone_number: "0559876543",
+      address: "جدة، حي الروضة",
+      quantity: "1 علبة",
+      status: "available",
+      created_at: new Date().toISOString()
     }
   ]);
 }
@@ -47,11 +51,20 @@ export async function getMedicines(): Promise<Medicine[]> {
 
   try {
     if (supabase) {
-      const { data, error } = await supabase.from('medicines').select('*').order('createdAt', { ascending: false });
+      const { data, error } = await supabase.from('medicines').select('*').order('created_at', { ascending: false });
       if (error) {
         console.error('Supabase Fetch Error:', error);
       } else if (data) {
-        allMeds = data as Medicine[];
+        // Map data to ensure all fields exist (graceful fallback for all historical schemas)
+        allMeds = data.map((item: any) => ({
+          ...item,
+          drug_name: item.drug_name || item.name || 'دواء غير مسمى',
+          address: item.address || item.city || 'غير محدد',
+          donator_name: item.donator_name || item.donator || item.ownerName || 'متبرع',
+          phone_number: item.phone_number || item.phone || '',
+          image_urls: item.image_urls || [item.image_url || item.image || item.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5e4b6d43e?auto=format&fit=crop&q=80&w=400'],
+          created_at: item.created_at || item.createdAt || new Date().toISOString()
+        })) as Medicine[];
       }
     }
   } catch (e) {
@@ -74,47 +87,47 @@ export async function getMedicines(): Promise<Medicine[]> {
   const combined = [...allMeds];
   const existingIds = new Set(allMeds.map(m => m.id));
   
-  for (const local of localMeds) {
+  for (const localItem of localMeds) {
+    const local = {
+      ...localItem,
+      drug_name: localItem.drug_name || (localItem as any).name || (localItem as any).drug_name || 'دواء غير مسمى',
+      address: localItem.address || (localItem as any).city || 'غير محدد',
+      donator_name: localItem.donator_name || (localItem as any).donator || (localItem as any).donator_name || (localItem as any).ownerName || 'متبرع',
+      phone_number: localItem.phone_number || (localItem as any).phone || (localItem as any).phone_number || '',
+      image_urls: localItem.image_urls || [(localItem as any).image_url || (localItem as any).image || (localItem as any).imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5e4b6d43e?auto=format&fit=crop&q=80&w=400'],
+      created_at: localItem.created_at || (localItem as any).createdAt || new Date().toISOString()
+    } as Medicine;
+
     if (!existingIds.has(local.id)) {
       combined.push(local);
     }
   }
   
   return combined.sort((a, b) => {
-    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
     return dateB - dateA;
   });
 }
 
-export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Promise<Medicine> {
+export async function addMedicine(data: Omit<Medicine, 'id' | 'created_at'>): Promise<Medicine> {
   const newLocalMed: Medicine = {
     ...data,
     id: Math.random().toString(36).substring(2, 9),
-    createdAt: new Date().toISOString()
+    created_at: new Date().toISOString()
   };
 
   if (supabase) {
     try {
-      // Explicitly map keys to match the quoted column names in Postgres if necessary
-      const payload = {
-        name: data.name,
-        imageUrl: data.imageUrl,
-        ownerName: data.ownerName,
-        phone: data.phone,
-        city: data.city
-      };
-
       const { data: newMedicine, error } = await supabase
         .from('medicines')
-        .insert([payload])
+        .insert([data])
         .select()
         .single();
 
       if (error) {
         console.error('Supabase Add Error Details:', error);
         toast.error(`لم يتم الرفع للسحابة: ${error.message}. سيتم الحفظ محلياً حالياً.`);
-        // Fallback to local
       } else if (newMedicine) {
         return newMedicine as Medicine;
       }
@@ -124,7 +137,6 @@ export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Pro
     }
   }
 
-  // Always save to local storage as a safety net if we haven't returned yet
   const list = getLocalMedicines();
   list.push(newLocalMed);
   saveLocalMedicines(list);
@@ -132,7 +144,6 @@ export async function addMedicine(data: Omit<Medicine, 'id' | 'createdAt'>): Pro
 }
 
 export async function deleteMedicine(id: string): Promise<void> {
-  // Always clean up local storage
   const list = getLocalMedicines().filter(m => m.id !== id);
   saveLocalMedicines(list);
 
@@ -141,29 +152,24 @@ export async function deleteMedicine(id: string): Promise<void> {
       const { error } = await supabase.from('medicines').delete().eq('id', id);
       if (error) {
         console.error('Supabase Delete Error:', error);
-        // We don't throw here to allow the local deletion to be considered a success for the UI
       }
     } catch (e) {
       console.error('Supabase Delete Exception:', e);
     }
   }
-  
-  try {
-    await fetch(`/api/medicines/${id}`, { method: 'DELETE' });
-  } catch (e) {}
 }
 
 export async function getStats(): Promise<{ totalMedicines: number, recentDonations: number }> {
   try {
     if (supabase) {
-      const { data, error } = await supabase.from('medicines').select('createdAt');
+      const { data, error } = await supabase.from('medicines').select('created_at');
       if (error) {
         console.error('Supabase Stats Error:', error);
       } else if (data) {
         const now = new Date();
         const recent = data.filter(m => {
-          if (!m.createdAt) return false;
-          const date = new Date(m.createdAt);
+          if (!m.created_at) return false;
+          const date = new Date(m.created_at);
           if (isNaN(date.getTime())) return false;
           const ms = now.getTime() - date.getTime();
           return ms < 7 * 24 * 60 * 60 * 1000;
@@ -176,18 +182,11 @@ export async function getStats(): Promise<{ totalMedicines: number, recentDonati
     console.error('Stats Exception:', e);
   }
   
-  try {
-    const res = await fetch('/api/stats');
-    if (res.ok) {
-      return await res.json();
-    }
-  } catch (e) {}
-
   const list = getLocalMedicines();
   const now = new Date();
   const recent = list.filter(m => {
-    if (!m.createdAt) return false;
-    const date = new Date(m.createdAt);
+    if (!m.created_at) return false;
+    const date = new Date(m.created_at);
     if (isNaN(date.getTime())) return false;
     const ms = now.getTime() - date.getTime();
     return ms < 7 * 24 * 60 * 60 * 1000;

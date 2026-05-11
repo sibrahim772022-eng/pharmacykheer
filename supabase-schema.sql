@@ -1,25 +1,50 @@
--- RUN THIS IN SUPABASE SQL EDITOR
--- This schema matches the current React app data structure
-
-DROP TABLE IF EXISTS medicines;
-
-CREATE TABLE medicines (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  "imageUrl" TEXT DEFAULT 'https://images.unsplash.com/photo-1584308666744-24d5e4b6d43e?auto=format&fit=crop&q=80&w=400',
-  "ownerName" TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  city TEXT NOT NULL,
-  "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+-- 1. Create the medicines table with original field names
+create table if not exists public.medicines (
+  id uuid default gen_random_uuid() primary key,
+  drug_name text not null,           -- اسم الدواء
+  quantity text not null,            -- الكمية
+  donator_name text not null,        -- اسم المتبرع
+  phone_number text not null,        -- رقم الهاتف
+  address text not null,             -- العنوان (المدينة والحي)
+  image_urls text[] not null,        -- روابط الصور
+  status text default 'available',    -- الحالة (متاح، تم الطلب)
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Enable RLS and allow all actions for now (Public Demo Policy)
-ALTER TABLE medicines ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Allow public all" ON medicines;
-CREATE POLICY "Allow public all" ON medicines FOR ALL TO public USING (true) WITH CHECK (true);
+-- 2. Enable Row Level Security (RLS) on the table
+alter table public.medicines enable row level security;
 
--- Optional: Initial Data
-INSERT INTO medicines (name, "ownerName", phone, city)
-VALUES 
-('بنادول إكسترا', 'أحمد محمد', '0501234567', 'الرياض'),
-('أوجمنتين 1 جم', 'سارة خالد', '0559876543', 'جدة');
+-- 3. Create policies for the table
+DO $$
+BEGIN
+    if not exists (select * from pg_policies where policyname = 'Allow public read access on medicines' and tablename = 'medicines') then
+        create policy "Allow public read access on medicines" on public.medicines for select using (true);
+    end if;
+    if not exists (select * from pg_policies where policyname = 'Allow public insert on medicines' and tablename = 'medicines') then
+        create policy "Allow public insert on medicines" on public.medicines for insert with check (true);
+    end if;
+    if not exists (select * from pg_policies where policyname = 'Allow public update on medicines' and tablename = 'medicines') then
+        create policy "Allow public update on medicines" on public.medicines for update using (true);
+    end if;
+    if not exists (select * from pg_policies where policyname = 'Allow public delete on medicines' and tablename = 'medicines') then
+        create policy "Allow public delete on medicines" on public.medicines for delete using (true);
+    end if;
+END
+$$;
+
+-- 4. Create the storage bucket for images
+insert into storage.buckets (id, name, public)
+values ('medicines-images', 'medicines-images', true)
+on conflict (id) do nothing;
+
+-- 5. Create storage policies to allow anonymous image uploads and reading
+DO $$
+BEGIN
+    if not exists (select * from pg_policies where policyname = 'Allow public viewing of images' and tablename = 'objects') then
+        create policy "Allow public viewing of images" on storage.objects for select using ( bucket_id = 'medicines-images' );
+    end if;
+    if not exists (select * from pg_policies where policyname = 'Allow public uploads of images' and tablename = 'objects') then
+        create policy "Allow public uploads of images" on storage.objects for insert with check ( bucket_id = 'medicines-images' );
+    end if;
+END
+$$;

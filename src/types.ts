@@ -1,9 +1,11 @@
 export interface Medicine {
   id: string;
-  name: string;
-  imageUrl: string;
-  ownerName: string;
-  phone: string;
-  city: string;
-  createdAt: string;
+  drug_name: string;
+  quantity: string;
+  donator_name: string;
+  phone_number: string;
+  address: string;
+  image_urls: string[];
+  status: string;
+  created_at: string;
 }
