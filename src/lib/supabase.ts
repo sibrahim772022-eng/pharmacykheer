@@ -3,12 +3,12 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Try to use Supabase env variables if they exist
 const supabaseUrl = 
-  import.meta.env.VITE_SUPABASE_URL || 
-  (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_URL : '') || 
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SUPABASE_URL) ||
+  (typeof process !== 'undefined' && process.env ? process.env.VITE_SUPABASE_URL : '') || 
   '';
 const supabaseAnonKey = 
-  import.meta.env.VITE_SUPABASE_ANON_KEY || 
-  (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_ANON_KEY : '') || 
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SUPABASE_ANON_KEY) ||
+  (typeof process !== 'undefined' && process.env ? process.env.VITE_SUPABASE_ANON_KEY : '') || 
   '';
 
 // Create a singleton mock or active client
