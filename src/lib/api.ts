@@ -17,33 +17,6 @@ function saveLocalMedicines(medicines: Medicine[]) {
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(medicines));
 }
 
-// Ensure mock data exists
-if (getLocalMedicines().length === 0) {
-  saveLocalMedicines([
-    {
-      id: "1",
-      drug_name: "بنادول إكسترا",
-      image_urls: ["https://images.unsplash.com/photo-1584308666744-24d5e4b6d43e?auto=format&fit=crop&q=80&w=400"],
-      donator_name: "أحمد محمد",
-      phone_number: "0501234567",
-      address: "الرياض، حي النرجس",
-      quantity: "2 علبة",
-      status: "available",
-      created_at: new Date().toISOString()
-    },
-    {
-      id: "2",
-      drug_name: "أوجمنتين 1 جم",
-      image_urls: ["https://images.unsplash.com/photo-1550572017-edb7f2aebe16?auto=format&fit=crop&q=80&w=400"],
-      donator_name: "سارة خالد",
-      phone_number: "0559876543",
-      address: "جدة، حي الروضة",
-      quantity: "1 علبة",
-      status: "available",
-      created_at: new Date().toISOString()
-    }
-  ]);
-}
 
 export async function getMedicines(): Promise<Medicine[]> {
   let allMeds: Medicine[] = [];
